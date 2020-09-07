@@ -3,43 +3,41 @@ const path = require('path')
 const https = require('https')
 const qs = require('querystring')
 const ejs = require('ejs')
+require('dotenv').config()
 
 const app = express()
 
 // Middleware for body parsing
-const parseUrl = express.urlencoded({ extended: false })
-const parseJson = express.json({ extended: false })
+const parseRequest = express.urlencoded({ extended: false })
 
 // Set the view engine to ejs
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 
 const checksum_lib = require('./Paytm/checksum')
-const config = require('./Paytm/config')
-const { response } = require('express')
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname + '/index.html'))
 })
 
-app.post('/paynow', [parseUrl, parseJson], (req, res) => {
+app.post('/paynow', [parseRequest], (req, res) => {
   if (!req.body.amount || !req.body.email || !req.body.phone) {
     res.status(400).send('Payment failed')
   } else {
     var params = {};
-    params['MID'] = config.PaytmConfig.mid;
-    params['WEBSITE'] = config.PaytmConfig.website;
-    params['CHANNEL_ID'] = 'WEB';
-    params['INDUSTRY_TYPE_ID'] = 'Retail';
+    params['MID'] = process.env.MID;
+    params['WEBSITE'] = process.env.WEBSITE;
+    params['CHANNEL_ID'] = process.env.CHANNEL_ID;
+    params['INDUSTRY_TYPE_ID'] = process.env.INDUSTRY_TYPE_ID;
     params['ORDER_ID'] = 'TEST_' + new Date().getTime();
     params['CUST_ID'] = 'customer_001';
     params['TXN_AMOUNT'] = req.body.amount.toString();
-    params['CALLBACK_URL'] = 'http://localhost:3000/callback';
+    params['CALLBACK_URL'] = process.env.URL + '/callback';
     params['EMAIL'] = req.body.email;
     params['MOBILE_NO'] = req.body.phone.toString();
 
 
-    checksum_lib.genchecksum(params, config.PaytmConfig.key, function (err, checksum) {
+    checksum_lib.genchecksum(params, process.env.KEY, function (err, checksum) {
       var txn_url = "https://securegw-stage.paytm.in/theia/processTransaction"; // for staging
       // var txn_url = "https://securegw.paytm.in/theia/processTransaction"; // for production
 
@@ -74,14 +72,14 @@ app.post('/callback', (req, res) => {
     // verify the checksum
     var checksumhash = post_data.CHECKSUMHASH;
     // delete post_data.CHECKSUMHASH;
-    var result = checksum_lib.verifychecksum(post_data, config.PaytmConfig.key, checksumhash);
+    var result = checksum_lib.verifychecksum(post_data, process.env.KEY, checksumhash);
     console.log("Checksum Result => ", result, "\n");
 
 
     // Send Server-to-Server request to verify Order Status
-    var params = { "MID": config.PaytmConfig.mid, "ORDERID": post_data.ORDERID };
+    var params = { "MID": process.env.MID, "ORDERID": post_data.ORDERID };
 
-    checksum_lib.genchecksum(params, config.PaytmConfig.key, function (err, checksum) {
+    checksum_lib.genchecksum(params, process.env.KEY, function (err, checksum) {
 
       params.CHECKSUMHASH = checksum;
       post_data = 'JsonData=' + JSON.stringify(params);
@@ -123,7 +121,7 @@ app.post('/callback', (req, res) => {
   });
 })
 
-const port = 3000
+const port = process.env.PORT || 3000
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 })
