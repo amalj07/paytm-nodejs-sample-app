@@ -16,6 +16,11 @@ app.set('view engine', 'ejs')
 
 const checksum_lib = require('./Paytm/checksum')
 
+const port = process.env.PORT || 3000
+const PROD_URL = "https://paytm-nodejs-sample-app.herokuapp.com"
+const DEV_URL = 'http://localhost:' + port
+const BASE_URL = (process.env.NODE_ENV ? PROD_URL : DEV_URL);
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname + '/index.html'))
 })
@@ -32,11 +37,9 @@ app.post('/paynow', [parseRequest], (req, res) => {
     params['ORDER_ID'] = 'TEST_' + new Date().getTime();
     params['CUST_ID'] = 'customer_001';
     params['TXN_AMOUNT'] = req.body.amount.toString();
-    params['CALLBACK_URL'] = process.env.URL + '/callback';
+    params['CALLBACK_URL'] = BASE_URL + '/callback';
     params['EMAIL'] = req.body.email;
     params['MOBILE_NO'] = req.body.phone.toString();
-
-    console.log(params)
 
     checksum_lib.genchecksum(params, process.env.KEY, function (err, checksum) {
       var txn_url = "https://securegw-stage.paytm.in/theia/processTransaction"; // for staging
@@ -122,7 +125,6 @@ app.post('/callback', (req, res) => {
   });
 })
 
-const port = process.env.PORT || 3000
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 })
