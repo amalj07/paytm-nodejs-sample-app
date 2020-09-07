@@ -36,6 +36,7 @@ app.post('/paynow', [parseRequest], (req, res) => {
     params['EMAIL'] = req.body.email;
     params['MOBILE_NO'] = req.body.phone.toString();
 
+    console.log(params)
 
     checksum_lib.genchecksum(params, process.env.KEY, function (err, checksum) {
       var txn_url = "https://securegw-stage.paytm.in/theia/processTransaction"; // for staging
