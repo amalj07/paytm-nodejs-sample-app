@@ -59,6 +59,7 @@ app.post('/paynow', [parseRequest], (req, res) => {
     }
   } catch (error) {
     console.log(error)
+    res.render('error')
   }
 })
 
@@ -130,6 +131,7 @@ app.post('/callback', (req, res) => {
     });
   } catch (error) {
     console.log(error)
+    res.render('error')
   }
 })
 
