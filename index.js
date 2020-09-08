@@ -27,7 +27,7 @@ app.get('/', (req, res) => {
 
 app.post('/paynow', [parseRequest], (req, res) => {
   try {
-    if (!req.body.amount || !req.body.email || !req.body.phone) {
+    if (!req.body.name || !req.body.amount || !req.body.email || !req.body.phone) {
       res.status(400).send('Payment failed')
     } else {
       var params = {};
@@ -36,7 +36,7 @@ app.post('/paynow', [parseRequest], (req, res) => {
       params['CHANNEL_ID'] = process.env.CHANNEL_ID;
       params['INDUSTRY_TYPE_ID'] = process.env.INDUSTRY_TYPE_ID;
       params['ORDER_ID'] = 'TEST_' + new Date().getTime();
-      params['CUST_ID'] = 'customer_001';
+      params['CUST_ID'] = req.body.name.replace(/\s+/g, '');
       params['TXN_AMOUNT'] = req.body.amount.toString();
       params['CALLBACK_URL'] = BASE_URL + '/callback';
       params['EMAIL'] = req.body.email;
@@ -76,14 +76,14 @@ app.post('/callback', (req, res) => {
       var post_data = qs.parse(body);
 
       // received params in callback
-      console.log('Callback Response: ', post_data, "\n");
+      // console.log('Callback Response: ', post_data, "\n");
 
 
       // verify the checksum
       var checksumhash = post_data.CHECKSUMHASH;
       // delete post_data.CHECKSUMHASH;
       var result = checksum_lib.verifychecksum(post_data, process.env.KEY, checksumhash);
-      console.log("Checksum Result => ", result, "\n");
+      // console.log("Checksum Result => ", result, "\n");
 
 
       // Send Server-to-Server request to verify Order Status
@@ -115,7 +115,7 @@ app.post('/callback', (req, res) => {
           });
 
           post_res.on('end', function () {
-            console.log('S2S Response: ', response, "\n");
+            // console.log('S2S Response: ', response, "\n");
 
             var _result = JSON.parse(response);
             res.render('response', {
