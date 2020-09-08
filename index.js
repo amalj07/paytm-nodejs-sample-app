@@ -38,7 +38,7 @@ app.post('/paynow', [parseRequest], (req, res) => {
       params['ORDER_ID'] = 'TEST_' + new Date().getTime();
       params['CUST_ID'] = req.body.name.replace(/\s+/g, '');
       params['TXN_AMOUNT'] = req.body.amount.toString();
-      params['CALLBACK_URL'] = BASE_URL + '/callback';
+      params['CALLBACK_URL'] = BASE_URL + '/response';
       params['EMAIL'] = req.body.email;
       params['MOBILE_NO'] = req.body.phone.toString();
 
@@ -63,7 +63,7 @@ app.post('/paynow', [parseRequest], (req, res) => {
   }
 })
 
-app.post('/callback', (req, res) => {
+app.post('/response', (req, res) => {
   try {
     var body = '';
 
